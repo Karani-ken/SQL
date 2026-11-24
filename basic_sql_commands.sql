@@ -8,8 +8,8 @@ CREATE TABLE users(
 
 /*INSERT DATA INTO THE TABLE*/
 INSERT INTO users (userId,username,email,password) 
-VALUES (2,'janedoe', 'janedoe@example.com', 'Password@123'),
-       (3,'kellydoe', 'kellydoe@example.com', 'Password@123');
+VALUES (4,'Sally', 'janedoe@example.com', 'Password@123'),
+       (5,'Smith', 'kellydoe@example.com', 'Password@123');
 
 /*Fetching data using SELECT*/
 SELECT * FROM users;
@@ -44,6 +44,19 @@ DROP COLUMN age;
 
 SELECT * FROM users;
 
-DELETE FROM users WHERE userid = 3;
+/*Delete a row from a table*/
+DELETE FROM users WHERE userid = 5;
+
+CREATE TABLE test(
+  testId int,
+  testName VARCHAR(20)
+);
+
+DROP TABLE test;
+
+
+
+
+
 
 
