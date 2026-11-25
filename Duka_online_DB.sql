@@ -7,8 +7,11 @@
  payments,
  reviews
 */
+
 /*To ensure postgresQL generates random UUIDs*/
-/*CREATE EXTENSION IF NOT EXISTS pgcrypto;*/
+CREATE EXTENSION IF NOT EXISTS pgcrypto; -- RUN this query first
+
+
 /*
 Users
 userid (pk), username, fullname, email,password, role ('buyer', 'seller', 'admin');
@@ -53,6 +56,7 @@ FOREIGN KEY (categoryid) REFERENCES categories(categoryid),
 FOREIGN KEY (userid) REFERENCES users(userid)
 );
 
+--Forgot to add products name so had to ALter the table
 ALTER TABLE products
 ADD COLUMN product_name VARCHAR(50);
 /**
@@ -88,7 +92,9 @@ paymentid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 orderid UUID,
 customerid UUID,
 payment_status VARCHAR(20),
-payment_method VARCHAR(20)
+payment_method VARCHAR(20),
+FOREIGN KEY (orderid) REFERENCES orders(orderid),
+FOREIGN KEY (customerid) REFERENCES users(userid)
 );
 /*
 Reviews
@@ -104,15 +110,15 @@ CREATE TABLE reviews(
 
 /*Insert users  into the users table*/
 INSERT INTO users (username, fullname, email, password, role) VALUES
-('admin_jane', 'Jane Wanjiru',  'jane.admin@shop.co.ke',   'Admin@123',  'admin'),   
-('techhub_ke', 'Peter Otieno',  'peter@techhub.co.ke',     'Seller@123', 'seller'),  
-('homestyle',  'Grace Muthoni', 'grace@homestyle.co.ke',   'Seller@456', 'seller'),  
-('brian_k',    'Brian Kamau',   'brian.kamau@gmail.com',   'Buyer@123',  'buyer'),   
-('amina_h',    'Amina Hassan',  'amina.hassan@gmail.com',  'Buyer@456',  'buyer'),  
-('dennis_m',   'Dennis Mwangi', 'dennis.mwangi@yahoo.com', 'Buyer@789',  'buyer'),  
-('lucy_n',     'Lucy Njeri',    'lucy.njeri@gmail.com',    'Buyer@321',  'buyer');   
+('admin_jane', 'Jane Wanjiru',  'jane.admin@shop.co.ke',   'Admin@123',  'admin'), --admin  
+('techhub_ke', 'Peter Otieno',  'peter@techhub.co.ke',     'Seller@123', 'seller'), --seller
+('homestyle',  'Grace Muthoni', 'grace@homestyle.co.ke',   'Seller@456', 'seller'), --seller
+('brian_k',    'Brian Kamau',   'brian.kamau@gmail.com',   'Buyer@123',  'buyer'),   --buyer
+('amina_h',    'Amina Hassan',  'amina.hassan@gmail.com',  'Buyer@456',  'buyer'),  --buyer
+('dennis_m',   'Dennis Mwangi', 'dennis.mwangi@yahoo.com', 'Buyer@789',  'buyer'),  --buyer
+('lucy_n',     'Lucy Njeri',    'lucy.njeri@gmail.com',    'Buyer@321',  'buyer');  --buyer 
 
-SELECT * FROM users;
+SELECT * FROM users; --getting all the users
 
 --Insert Main Categories
 INSERT INTO categories (category_name, category_desc, is_main, main_categoryid) VALUES
@@ -130,7 +136,7 @@ INSERT INTO categories (category_name, category_desc, is_main, main_categoryid) 
 
 
 --Insert into products table
-INSERT INTO products (price, product_desc, categoryid, userid, stock) VALUES
+INSERT INTO products (price, product_desc, categoryid, userid, stock, product_name) VALUES
 -- seller: techhub_ke -> aaaaaaaa-...-0002
 (22000, 'Samsung Galaxy A15 - 128GB, 6GB RAM, dual SIM',                '6a8d0cbf-b9e3-4717-afdb-6901ccf2a9bb', '2e7300af-9e80-4f11-973f-377d662c1513', 25),  
 (52000, 'Lenovo IdeaPad 3 - Core i5, 8GB RAM, 512GB SSD, 15.6 inch',    '8a059e77-3188-48af-9c58-182746f5dda7', '2e7300af-9e80-4f11-973f-377d662c1513', 10),  
@@ -144,29 +150,71 @@ INSERT INTO products (price, product_desc, categoryid, userid, stock) VALUES
 
 SELECT * FROM products;
 
--- SQL Joins: Practice Questions
- 
+--Insert Orders
+INSERT INTO orders (customerid, order_status, order_totals) VALUES
+('33a2ea87-328b-4363-92e8-9d679beea6ca', 'delivered', 25500),  -- Brian: Galaxy A15 + Earbuds   | placeholder eeeeeeee-...-0001
+('7920a731-c114-441f-ada8-3d6e2a9d5127', 'delivered',  4500),  -- Amina: Polo + Jeans           | placeholder eeeeeeee-...-0002
+('eae5a9f6-0a5f-4b94-89be-61191c09365e', 'shipped',   52000),  -- Dennis: Lenovo IdeaPad        | placeholder eeeeeeee-...-0003
+('30a4e8d0-7954-469b-a513-727e49179444', 'pending',    5300),  -- Lucy: Frying Pan + Kettle     | placeholder eeeeeeee-...-0004
+('33a2ea87-328b-4363-92e8-9d679beea6ca', 'paid',       4000),  -- Brian: Polo + Frying Pan      | placeholder eeeeeeee-...-0005
+('7920a731-c114-441f-ada8-3d6e2a9d5127', 'cancelled',  3500);  -- Amina: Earbuds                | placeholder eeeeeeee-...-0006
+SELECT * FROM orders;
 
+
+-- Insert rows into the order_items table
+INSERT INTO order_items (orderid, productid) VALUES
+('ea99cce4-73b0-45ca-8e9b-315fce8d936b', '047d1675-ba29-4581-9086-58f8fc79d6cd'),  -- Galaxy A15
+('ea99cce4-73b0-45ca-8e9b-315fce8d936b', 'b6876aef-9dc8-4422-9572-d8245f905158'),  -- Earbuds
+('55def3a6-cb88-464f-96b1-bdc08e3fff2b', 'db103609-5471-4a8e-aa44-4178e81188d4'),  -- Polo
+('55def3a6-cb88-464f-96b1-bdc08e3fff2b', '8728be8c-a2cc-4880-98a5-2d241ececaa1'),  -- Jeans
+('42f07844-46b4-47dc-b03e-ae90f9d9b0a4', 'c874fcc7-bbf7-4263-8dec-e727b21f82b1'),  -- Lenovo IdeaPad
+('90a633a3-0472-4729-84ed-89407a9e5e59', 'eb1721e5-4bce-4241-9be6-53565d0f4fb0'),  -- Frying Pan
+('90a633a3-0472-4729-84ed-89407a9e5e59', '40a032a1-2eea-4b30-aa1b-714cb9a9e1ba'),  -- Kettle
+('47199368-7ebe-4c06-b866-ad0ede45ef4c', 'db103609-5471-4a8e-aa44-4178e81188d4'),  -- Polo
+('47199368-7ebe-4c06-b866-ad0ede45ef4c', 'eb1721e5-4bce-4241-9be6-53565d0f4fb0'),  -- Frying Pan
+('48199ca1-80cf-4b5c-b242-87dc429640f1', 'b6876aef-9dc8-4422-9572-d8245f905158');  -- Earbuds
+SELECT * FROM order_items;
+-- SQL Joins: Practice Questions
  
 ---
  
 -- Level 1: Single table (warm-up)
  
 -- 1. Get all orders.
+SELECT * FROM orders;
 -- 2. Get all products that cost more than 3,000.
+SELECT * FROM products WHERE price > 3000;
 -- 3. Get all users who are buyers.
+SELECT * FROM users WHERE role = 'buyer';
 -- 4. Get all orders that are still pending.
+SELECT * FROM orders WHERE order_status
 -- Level 2: INNER JOIN with two tables
  
 -- 5. Get all products together with the name of the seller who owns them.
-SELECT p.product_name, p.price, p.desc, p.stock u.username AS seller FROM products p JOIN users u ON userid = p.userid;
+SELECT p.productid, p.price, p.product_desc, p.stock, u.username 
+AS seller
+FROM products p JOIN users u ON u.userid = p.userid;
 -- 6. Get all products together with their category name.
+SELECT p.productid, p.price, p.product_desc, p.stock, c.category_name As category
+FROM products p 
+JOIN categories c ON c.categoryid = p.categoryid;
 -- 7. Get all orders together with the customer's name.
+SELECT o.orderid, o.order_status, o.order_totals, u.username AS customer, u.email AS customer_email
+FROM orders o
+JOIN users u ON u.userid = o.customerid;
 -- 8. Get all reviews together with the product they are about.
 -- 9. Get all products owned by one user (the seller `homestyle`).
--- ## Level 3: Joining three or more tables
- 
+
+-- ## Level 3: Joining three or more tables 
 -- 10. For every order, show the customer, the products in it and each product's price.
+--Combine 4 tables (orders, order_items, users, products)
+SELECT o.orderid, o.order_status, o.order_totals,
+u.username AS customer, u.email AS customer_email,
+p.productid, p.product_name, p.product_desc, p.price
+FROM orders o
+JOIN users u ON u.userid = o.customerid
+JOIN order_items oi ON oi.orderid = o.orderid
+JOIN products p ON p.productid = oi.productid;
 -- 11. Get all the items in one customer's orders (`brian_k`).
 -- 12. Show each order with its payment status and payment method.
 -- 13. Show each product with its seller, category and reviews.
